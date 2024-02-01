@@ -82,6 +82,11 @@ class BuildResultPrinter {
     // success messages for them but the overall build will still fail if validation aspects (or
     // targets) failed.
     Collection<AspectKey> aspectsToPrint = aspects.keySet();
+    ImmutableSet<String> aspectsToIgnore =
+        ImmutableSet.copyOf(request.getBuildOptions().hideAspectResults);
+    aspectsToPrint = aspects.keySet().stream()
+        .filter(k -> !aspectsToIgnore.contains(k.getAspectClass().getName()))
+        .collect(ImmutableSet.toImmutableSet());
     if (request.useValidationAspect()) {
       aspectsToPrint =
           aspectsToPrint.stream()
