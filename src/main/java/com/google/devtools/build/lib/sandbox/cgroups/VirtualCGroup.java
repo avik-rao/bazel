@@ -55,6 +55,7 @@ public abstract class VirtualCGroup {
     public abstract Controller.Memory memory();
     @Nullable
     public abstract Controller.CpuAcct cpuacct();
+    @Nullable
     public abstract Controller.NetCls netCls();
 
     public abstract ImmutableSet<Path> paths();
@@ -209,6 +210,7 @@ public abstract class VirtualCGroup {
 
         cpu = cpu != null ? cpu : Controller.getDefault(Controller.Cpu.class);
         memory = memory != null ? memory : Controller.getDefault(Controller.Memory.class);
+        netCls = netCls != null ? netCls : Controller.getDefault(Controller.NetCls.class);
         VirtualCGroup vcgroup = new AutoValue_VirtualCGroup(cpu, memory, cpuacct, netCls, paths.build());
         Runtime.getRuntime().addShutdownHook(new Thread(() -> vcgroup.delete()));
         return vcgroup;
@@ -222,8 +224,8 @@ public abstract class VirtualCGroup {
     public VirtualCGroup child(String name) throws IOException {
         Controller.Cpu cpu = Controller.getDefault(Controller.Cpu.class);
         Controller.Memory memory = Controller.getDefault(Controller.Memory.class);
-        Controller.CpuAcct cpuacct = null;
         Controller.NetCls netCls = null;
+        Controller.CpuAcct cpuacct = null;
         ImmutableSet.Builder<Path> paths = ImmutableSet.builder();
         if (memory() != null && memory().getPath() != null) {
             copyControllersToSubtree(memory().getPath());
@@ -251,7 +253,7 @@ public abstract class VirtualCGroup {
             copyControllersToSubtree(netCls().getPath());
             Path cgroup = netCls().getPath().resolve(name);
             cgroup.toFile().mkdirs();
-            netCls = netCls().isLegacy() ? new LegacyNetCls(cgroup) : null;
+            netCls = new LegacyNetCls(cgroup);
             paths.add(cgroup);
         }
         VirtualCGroup child = new AutoValue_VirtualCGroup(cpu, memory, cpuacct, netCls, paths.build());
