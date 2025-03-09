@@ -262,7 +262,7 @@ final class LinuxSandboxedSpawnRunner extends AbstractSandboxSpawnRunner {
       cgroup.cpu().setCpus(cpuLimit);
     }
 
-    if (requiresNetwork && sandboxOptions.cgroupNetCls != 0) {
+    if (!requiresNetwork && sandboxOptions.cgroupNetCls != 0) {
       if (cgroup == null) {
         cgroup = VirtualCGroup.getInstance(this.reporter).child(scope);
       }
